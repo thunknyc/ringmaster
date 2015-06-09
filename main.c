@@ -22,6 +22,22 @@ typedef struct obstructor {
   obstructor_state state;
 } obstructor;
 
+unsigned long next_nat_pow_2(unsigned long n) {
+  unsigned long x = 0;
+
+  if(!n--) return 1;
+
+  while(n) {
+    n >>= 1;
+    x = (x << 1) | 1;
+  }
+  return ++x;
+}
+
+unsigned long incr_index(obstructor *o, unsigned long i) {
+  return 0;
+}
+
 obstructor *make_obstructor(unsigned long requested_slots,
                             unsigned int n_consumers,
                             consumer *consumers) {
