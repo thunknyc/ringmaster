@@ -5,7 +5,7 @@
 static unsigned long next_nat_pow_2(unsigned long n) {
   unsigned long x = 0;
 
-  if(!n--) return 1;
+  if (!n--) return 1;
 
   while(n) {
     n >>= 1;
