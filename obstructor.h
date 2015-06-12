@@ -60,9 +60,8 @@ extern void join_obstructor(obstructor *o);
       if(state == STOPPED) {                                    \
         pthread_exit(NULL);                                     \
         break;                                                  \
-      } else if(state == PAUSED) {                              \
+      } else if(state == PAUSED)                                \
         continue;                                               \
-      }                                                         \
                                                                 \
       long long i = datum_available_private(o, consumer);       \
       if (i == -1)                                              \
