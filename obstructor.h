@@ -35,7 +35,9 @@ make_obstructor(unsigned long requested_slots,
                 consumer *consumers,
                 bool consumer_deps[n_consumers][n_consumers]);
 
-extern long long datum_available(obstructor *o, unsigned short consumer);
+extern long long datum_available_private(obstructor *o,
+                                         unsigned short consumer);
+
 extern void start_obstructor(obstructor *o);
 extern void pause_obstructor(obstructor *o);
 extern void resume_obstructor(obstructor *o);
@@ -62,14 +64,14 @@ extern void join_obstructor(obstructor *o);
         continue;                                               \
       }                                                         \
                                                                 \
-      long long i = datum_available(o, consumer);               \
+      long long i = datum_available_private(o, consumer);       \
       if (i == -1)                                              \
         continue;                                               \
                                                                 \
       DATUM_TYPE DATUM = (DATUM_TYPE)o->slots[i];               \
 
 #define END_CONSUMER                            \
-  }                                             \
+    }                                           \
                                                 \
     return NULL;                                \
-    }
+  }
