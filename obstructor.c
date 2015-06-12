@@ -14,10 +14,6 @@ static unsigned long next_nat_pow_2(unsigned long n) {
   return ++x;
 }
 
-unsigned long incr_index(obstructor *o, unsigned long i) {
-  return ++i & o->n_slots_mask;
-}
-
 static obstructor *alloc_obstructor(unsigned long n_slots,
                                     short n_consumers) {
 
@@ -102,7 +98,7 @@ void destroy_obstructor(obstructor *o) {
 }
 
 static long long new_head(obstructor *o) {
-  unsigned long h = incr_index(o, o->head);
+  unsigned long h = (o->head + 1) & o->n_slots_mask;
   return (h == o->tail) ? -1 : h;
 }
 
