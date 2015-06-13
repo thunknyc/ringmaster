@@ -38,6 +38,7 @@ make_obstructor(unsigned long requested_slots,
 extern long long datum_available_private(obstructor *o,
                                          unsigned short consumer);
 
+extern void finish_datum_private(obstructor *o, unsigned short consumer);
 extern void start_obstructor(obstructor *o);
 extern void pause_obstructor(obstructor *o);
 extern void resume_obstructor(obstructor *o);
@@ -49,9 +50,10 @@ extern void join_obstructor(obstructor *o);
 
 #define CONSUMER(CONSUMER_FUNCTION, DATUM_TYPE, DATUM)          \
   void *CONSUMER_FUNCTION(void *obs_arguments) {                \
+    char obs_consumer_name[] = #CONSUMER_FUNCTION;              \
     consumer_args *obs_args = (consumer_args *)obs_arguments;   \
-    obstructor *obs_o = obs_args->obs_o;                        \
-    unsigned short obs_consumer = obs_args->obs_consumer;       \
+    obstructor *obs_o = obs_args->o;                            \
+    unsigned short obs_consumer = obs_args->consumer;           \
                                                                 \
     free(obs_arguments);                                        \
                                                                 \
@@ -69,8 +71,11 @@ extern void join_obstructor(obstructor *o);
                                                                 \
       DATUM_TYPE DATUM = (DATUM_TYPE)obs_o->slots[obs_i];       \
 
-#define END_CONSUMER                            \
-    }                                           \
-                                                \
-    return NULL;                                \
+#define END_CONSUMER                                  \
+      finish_datum_private(obs_o, obs_consumer);      \
+    }                                                 \
+                                                      \
+    return NULL;                                      \
   }
+
+#define N_CONSUMERS(CS) (sizeof(CS)/sizeof(consumer))

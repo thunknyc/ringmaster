@@ -153,20 +153,24 @@ long long datum_available_private(obstructor *o, unsigned short consumer) {
   unsigned long slot = o->consumer_slots[consumer];
   int n_consumers = o->n_consumers;
 
-  if (head == slot) return -1;
+  if (head == slot)
+    return -1;
 
   {
-    unsigned long *cp = o->consumer_slots;
-    bool *dp = ((bool(*)[o->n_consumers])o->consumer_deps)[consumer];
+    unsigned long *csp = o->consumer_slots;
+    bool *cdp = ((bool(*)[o->n_consumers])o->consumer_deps)[consumer];
 
-    for (int j = 0; j < n_consumers; j++, cp++, dp++)
-      if (*dp && *cp == slot) return -1;
+    for (int i = 0; i < n_consumers; i++, csp++, cdp++)
+      if (*cdp && *csp == slot)
+        return -1;
   }
 
-  unsigned long new_slot = slot + 1 & o->n_slots_mask;
-  o->consumer_slots[consumer] = new_slot;
-
   return slot;
+}
+
+void finish_datum_private(obstructor *o, unsigned short consumer) {
+  o->consumer_slots[consumer] =
+    o->consumer_slots[consumer] + 1 & o->n_slots_mask;
 }
 
 bool obstructor_is_empty(obstructor *o) {
