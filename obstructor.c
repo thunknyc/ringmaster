@@ -149,11 +149,10 @@ void provide_obstructor_block(obstructor *o, void *v) {
 }
 
 long long datum_available_private(obstructor *o, unsigned short consumer) {
-  unsigned long head = o->head;
   unsigned long slot = o->consumer_slots[consumer];
   int n_consumers = o->n_consumers;
 
-  if (head == slot)
+  if (o->head == slot)
     return -1;
 
   {
