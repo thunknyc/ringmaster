@@ -48,26 +48,26 @@ extern bool obstructor_is_empty(obstructor *o);
 extern void join_obstructor(obstructor *o);
 
 #define CONSUMER(CONSUMER_FUNCTION, DATUM_TYPE, DATUM)          \
-  void *CONSUMER_FUNCTION(void *arguments) {                    \
-    consumer_args *args = (consumer_args *)arguments;           \
-    obstructor *o = args->o;                                    \
-    unsigned short consumer = args->consumer;                   \
+  void *CONSUMER_FUNCTION(void *obs_arguments) {                \
+    consumer_args *obs_args = (consumer_args *)obs_arguments;   \
+    obstructor *obs_o = obs_args->obs_o;                        \
+    unsigned short obs_consumer = obs_args->obs_consumer;       \
                                                                 \
-    free(arguments);                                            \
+    free(obs_arguments);                                        \
                                                                 \
     for (;;) {                                                  \
-      obstructor_state state = o->state;                        \
-      if (state == STOPPED) {                                   \
+      obstructor_state obs_state = obs_o->state;                \
+      if (obs_state == STOPPED) {                               \
         pthread_exit(NULL);                                     \
         break;                                                  \
-      } else if (state == PAUSED)                               \
+      } else if (obs_state == PAUSED)                           \
         continue;                                               \
                                                                 \
-      long long i = datum_available_private(o, consumer);       \
-      if (i == -1)                                              \
+      long long obs_i = datum_available_private(obs_o, obs_consumer);   \
+      if (obs_i == -1)                                          \
         continue;                                               \
                                                                 \
-      DATUM_TYPE DATUM = (DATUM_TYPE)o->slots[i];               \
+      DATUM_TYPE DATUM = (DATUM_TYPE)obs_o->slots[obs_i];       \
 
 #define END_CONSUMER                            \
     }                                           \
