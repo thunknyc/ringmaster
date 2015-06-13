@@ -104,10 +104,10 @@ int main(int argc, char **argv) {
   LOG("iterations: %ld\n", iterations);
 
   out_file = stdout;
-  
+
   start_obstructor(in);
   start_obstructor(out);
-  
+
   for (long i = 0; i < iterations; i++)
     provide_obstructor_block(in, make_ievent(i));
 
