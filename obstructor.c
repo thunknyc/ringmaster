@@ -20,9 +20,6 @@ static obstructor *alloc_obstructor(unsigned long n_slots,
   obstructor *o = malloc(sizeof(struct obstructor));
   assert(o != NULL);
 
-  o->slots = calloc(1, n_slots * sizeof(void*));
-  assert(o->slots != NULL);
-
   o->consumer_slots = calloc(1, n_consumers * sizeof(unsigned long));
   assert(o->consumer_slots);
 
@@ -93,7 +90,6 @@ void destroy_obstructor(obstructor *o) {
   stop_threads(o->n_consumers, o->threads);
   free(o->threads);
   free(o->consumer_slots);
-  free(o->slots);
   free(o);
 }
 
@@ -108,11 +104,11 @@ static void advance_tail(obstructor *o) {
   if (o->tail == o->head)
     return;
 
-  unsigned long is[o->n_consumers];
+  size_t is[o->n_consumers];
 
   {
-    unsigned long *isp = is;
-    unsigned long *csp = o->consumer_slots;
+    size_t *isp = is;
+    size_t *csp = o->consumer_slots;
     for (int i = 0; i < o->n_consumers; i++, isp++, csp++)
       *isp = (*csp + o->n_slots - o->tail) & o->n_slots_mask;
   }
@@ -129,26 +125,29 @@ static void advance_tail(obstructor *o) {
   o->tail = (o->tail + advance) & o->n_slots_mask;
 }
 
-bool provide_obstructor(obstructor *o, void *v) {
+size_t get_slot(obstructor *o) {
 
   advance_tail(o);
 
-  if (o->state != ACTIVE) return false;
+  if (o->state != ACTIVE) return -1;
 
   long long h = new_head(o);
-  if (h == -1) return false;
+  if (h == -1) return -1;
 
-  unsigned long new_head = (unsigned long)h;
-  o->slots[o->head] = v;
-  o->head = new_head;
-  return true;
+  return o->head;
 }
 
-void provide_obstructor_block(obstructor *o, void *v) {
-  while(!provide_obstructor(o, v));
+size_t get_slot_block(obstructor *o) {
+  long long slot;
+  while((slot = get_slot(o)) == -1);
+  return (size_t)slot;
 }
 
-long long datum_available_private(obstructor *o, unsigned short consumer) {
+void advance_slot(obstructor *o) {
+  o->head = new_head(o);
+}
+
+long long slot_available_private(obstructor *o, unsigned short consumer) {
   unsigned long slot = o->consumer_slots[consumer];
   int n_consumers = o->n_consumers;
 
@@ -167,7 +166,7 @@ long long datum_available_private(obstructor *o, unsigned short consumer) {
   return slot;
 }
 
-void finish_datum_private(obstructor *o, unsigned short consumer) {
+void finish_slot_private(obstructor *o, unsigned short consumer) {
   o->consumer_slots[consumer] =
     o->consumer_slots[consumer] + 1 & o->n_slots_mask;
 }

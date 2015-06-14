@@ -8,88 +8,69 @@
 
 #define LOG(...) fprintf(stderr, __VA_ARGS__)
 
-#define IN_BUFFER_SIZE 1024
-#define OUT_BUFFER_SIZE 1024
+#define IN_BUFFER_SIZE 8192
+#define MAX_S_SIZE 32
+#define OUT_BUFFER_SIZE 8192
+#define MAX_JSON_SIZE 64
 
 typedef struct in_event {
-  char *s;
-  long long a,b,sum;
+  char s[MAX_S_SIZE];
+  long a,b,sum;
 } in_event;
 
 typedef struct out_event {
-  char *message;
+  char message[MAX_JSON_SIZE];
 } out_event;
 
 obstructor *in, *out;
 FILE *out_file;
 
-in_event *make_ievent(long i) {
-  in_event *e = calloc(1, sizeof(in_event));
-  assert(e != NULL);
-  asprintf(&e->s, "%ld, %ld", i, i * 2);
-  assert(e->s != NULL);
-  return e;
+in_event ievents[IN_BUFFER_SIZE];
+out_event oevents[OUT_BUFFER_SIZE];
+
+void init_ievent(size_t slot, long n) {
+  snprintf(ievents[slot].s, MAX_S_SIZE, "%ld, %ld", n, n * 2);
 }
 
-CONSUMER(parse_ievent, in_event *, event) {
+CONSUMER(parse_ievent, slot) {
   char *sep = ", ";
   char *tok, *last;
-  char *as = strtok_r(event->s, sep, &last);
+  char *as = strtok_r(ievents[slot].s, sep, &last);
   char *bs = strtok_r(NULL, sep, &last);
-  event->a = atoll(as);
-  event->b = atoll(bs);
+  ievents[slot].a = atoll(as);
+  ievents[slot].b = atoll(bs);
 } END_CONSUMER
 
-CONSUMER(sum_ievent, in_event *, event) {
-  event->sum = event->a + event->b;
+CONSUMER(sum_ievent, slot) {
+  ievents[slot].sum = ievents[slot].a + ievents[slot].b;
 } END_CONSUMER
 
-CONSUMER(jsonify_ievent, in_event *, event) {
-  char *json;
-  asprintf(&json, "{\"a\": %lld, \"b\": %lld, \"sum\": %lld}\n",
-           event->a, event->b, event->sum);
-  assert(json != NULL);
-
-  out_event *oevent = calloc(1, sizeof(out_event));
-  assert(oevent != NULL);
-
-  oevent->message = json;
-  provide_obstructor_block(out, oevent);
+CONSUMER(jsonify_ievent, slot) {
+  size_t slot = get_slot_block(out);
+  snprintf(oevents[slot].message, MAX_JSON_SIZE,
+           "{\"a\": %ld, \"b\": %ld, \"sum\": %ld}\n",
+           ievents[slot].a, ievents[slot].b, ievents[slot].sum);
+  advance_slot(out);
 } END_CONSUMER
 
-CONSUMER(destroy_ievent, in_event *, event) {
-  long long sum = event->sum;
-
-  free(event->s);
-  free(event);
-} END_CONSUMER
-
-CONSUMER(write_oevent, out_event *, event) {
-  assert(event->message != NULL);
-  fputs(event->message, out_file);
-} END_CONSUMER
-
-CONSUMER(destroy_oevent, out_event *, event) {
-  free(event->message);
-  free(event);
+CONSUMER(write_oevent, slot) {
+  fputs(oevents[slot].message, out_file);
 } END_CONSUMER
 
 int main(int argc, char **argv) {
 
-  consumer in_consumers[] = {parse_ievent, sum_ievent,
-                             jsonify_ievent, destroy_ievent};
+  consumer in_consumers[] = {parse_ievent, sum_ievent, jsonify_ievent};
 
-  bool in_deps[4][4] = {{false, false, false, false},
-                        {true, false, false, false},
-                        {false, true, false, false},
-                        {false, false, true, false}};
+  bool in_deps[3][3] = {{false, false, false},
+                        {true, false, false},
+                        {false, true, false}};
 
   in = make_obstructor(IN_BUFFER_SIZE, N_CONSUMERS(in_consumers),
                        in_consumers, in_deps);
 
-  consumer out_consumers[] = {write_oevent, destroy_oevent};
+  consumer out_consumers[] = {write_oevent};
 
-  bool out_deps[2][2] = {{false, false}, {true, false}};
+  bool out_deps[1][1] = {{false}};
 
   out = make_obstructor(OUT_BUFFER_SIZE, N_CONSUMERS(out_consumers),
                         out_consumers, out_deps);
@@ -108,12 +89,15 @@ int main(int argc, char **argv) {
   start_obstructor(in);
   start_obstructor(out);
 
-  for (long i = 0; i < iterations; i++)
-    provide_obstructor_block(in, make_ievent(i));
-
+  for (long i = 0; i < iterations; i++) {
+    size_t slot = get_slot_block(in);
+    init_ievent(slot, i);
+    advance_slot(in);
+  }
+  
   join_obstructor(in);
   destroy_obstructor(in);
-
+  
   join_obstructor(out);
   destroy_obstructor(out);
 
