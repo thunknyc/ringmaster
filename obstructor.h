@@ -50,7 +50,7 @@ extern void join_obstructor(obstructor *o);
 
 #define CONSUMER(CONSUMER_FUNCTION, SLOT)                       \
   void *CONSUMER_FUNCTION(void *obs_arguments) {                \
-    char obs_consumer_name[] = #CONSUMER_FUNCTION;              \
+    __unused char obs_consumer_name[] = #CONSUMER_FUNCTION;     \
     consumer_args *obs_args = (consumer_args *)obs_arguments;   \
     obstructor *obs_o = obs_args->o;                            \
     unsigned short obs_consumer = obs_args->consumer;           \
@@ -69,7 +69,7 @@ extern void join_obstructor(obstructor *o);
       if (obs_i == -1)                                          \
         continue;                                               \
                                                                 \
-      size_t SLOT = (size_t)obs_i;                              \
+      __unused size_t SLOT = (size_t)obs_i;                     \
 
 #define END_CONSUMER                                  \
       finish_slot_private(obs_o, obs_consumer);       \
