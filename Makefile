@@ -1,4 +1,5 @@
 CFLAGS = -Wall -std=c99
+
 a.out: main.o obstructor.o
 	$(CC) -o a.out main.o obstructor.o
 
