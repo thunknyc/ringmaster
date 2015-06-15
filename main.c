@@ -34,7 +34,7 @@ void init_ievent(size_t slot, long n) {
 
 CONSUMER(parse_ievent, slot) {
   char *sep = ", ";
-  char *tok, *last;
+  char *last;
   char *as = strtok_r(ievents[slot].s, sep, &last);
   char *bs = strtok_r(NULL, sep, &last);
   ievents[slot].a = atoll(as);
