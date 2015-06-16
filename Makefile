@@ -1,4 +1,4 @@
-CFLAGS = -Wall -std=c99
+CFLAGS = -emit-llvm -Werror -Wall -std=c99 -Ofast
 
 a.out: main.o obstructor.o
 	$(CC) -o a.out main.o obstructor.o
