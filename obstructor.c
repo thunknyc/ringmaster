@@ -2,16 +2,15 @@
 #include <assert.h>
 #include <stdbool.h>
 
-static unsigned long next_nat_pow_2(unsigned long n) {
-  unsigned long x = 0;
+static unsigned long largest_pow_2(unsigned long n) {
+  unsigned long v = 1;
 
-  if (!n--) return 1;
+  if(!n) return 0;
 
-  while(n) {
-    n >>= 1;
-    x = (x << 1) | 1;
-  }
-  return ++x;
+  for(n >>= 1; n; n >>= 1)
+    v = (v << 1);
+
+  return v;
 }
 
 static obstructor *alloc_obstructor(unsigned long n_slots,
@@ -34,7 +33,7 @@ obstructor *make_obstructor(unsigned long requested_slots,
                             consumer *consumers,
                             bool consumer_deps[n_consumers][n_consumers]) {
 
-  unsigned long n_slots = next_nat_pow_2(requested_slots);
+  unsigned long n_slots = largest_pow_2(requested_slots);
 
   obstructor *o = alloc_obstructor(n_slots, n_consumers);
   assert(o != NULL);
