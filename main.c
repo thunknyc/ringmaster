@@ -8,9 +8,9 @@
 
 #define LOG(...) fprintf(stderr, __VA_ARGS__)
 
-#define IN_BUFFER_SIZE 8192
+#define IN_BUFFER_SIZE 65536
 #define MAX_S_SIZE 32
-#define OUT_BUFFER_SIZE 8192
+#define OUT_BUFFER_SIZE 65536
 #define MAX_JSON_SIZE 64
 
 typedef struct in_event {
