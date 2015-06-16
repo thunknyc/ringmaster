@@ -2,41 +2,41 @@
 
 Disruptor-inspired graph computing.
 
-`typedef struct buffmgr` type
+`typedef struct ringmgr_t` type
 
 
 `typedef void *(*consumer)(void *arguments)` type
 
 
-`extern buffmgr *
-buffmgr_make(size_t requested_slots, short n_consumers, consumer *consumers, bool consumer_deps[n_consumers][n_consumers])` function
+`extern ringmgr_t *
+ringmgr_make(size_t requested_slots, short n_consumers, consumer *consumers, bool consumer_deps[n_consumers][n_consumers])` function
 
 
-`extern void buffmgr_start(buffmgr *bm)` function
+`extern void ringmgr_start(ringmgr_t *rm)` function
 
 
-`extern void buffmgr_pause(buffmgr *bm)` function
+`extern void ringmgr_pause(ringmgr_t *rm)` function
 
 
-`extern void buffmgr_resume(buffmgr *bm)` function
+`extern void ringmgr_resume(ringmgr_t *rm)` function
 
 
-`extern void buffmgr_destroy(buffmgr *bm)` function
+`extern void ringmgr_destroy(ringmgr_t *rm)` function
 
 
-`extern size_t buffmgr_getslot(buffmgr *bm)` function
+`extern size_t ringmgr_getslot(ringmgr_t *rm)` function
 
 
-`extern size_t buffmgr_getslot_spin(buffmgr *bm)` function
+`extern size_t ringmgr_getslot_spin(ringmgr_t *rm)` function
 
 
-`extern void buffmgr_advanceslot(buffmgr *bm)` function
+`extern void ringmgr_advanceslot(ringmgr_t *rm)` function
 
 
-`extern bool buffmgr_is_empty(buffmgr *bm)` function
+`extern bool ringmgr_is_empty(ringmgr_t *rm)` function
 
 
-`extern void buffmgr_join_spin(buffmgr *bm)` function
+`extern void ringmgr_join_spin(ringmgr_t *rm)` function
 
 
 `CONSUMER(CONSUMER_FUNCTION, SLOT)` macro
