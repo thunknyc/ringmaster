@@ -35,18 +35,18 @@ buffmgr_make(size_t requested_slots,
              bool consumer_deps[n_consumers][n_consumers]);
 
 extern long long
-buffmgr_slotavailable_priv(buffmgr *o, unsigned short consumer);
+buffmgr_slotavailable_priv(buffmgr *bm, unsigned short consumer);
 
-extern void buffmgr_finishslot_priv(buffmgr *o, unsigned short consumer);
-extern void buffmgr_start(buffmgr *o);
-extern void buffmgr_pause(buffmgr *o);
-extern void buffmgr_resume(buffmgr *o);
-extern void buffmgr_destroy(buffmgr *o);
-extern size_t buffmgr_getslot(buffmgr *o);
-extern size_t buffmgr_getslot_spin(buffmgr *o);
-extern void buffmgr_advanceslot(buffmgr *o);
-extern bool buffmgr_is_empty(buffmgr *o);
-extern void buffmgr_join_spin(buffmgr *o);
+extern void buffmgr_finishslot_priv(buffmgr *bm, unsigned short consumer);
+extern void buffmgr_start(buffmgr *bm);
+extern void buffmgr_pause(buffmgr *bm);
+extern void buffmgr_resume(buffmgr *bm);
+extern void buffmgr_destroy(buffmgr *bm);
+extern size_t buffmgr_getslot(buffmgr *bm);
+extern size_t buffmgr_getslot_spin(buffmgr *bm);
+extern void buffmgr_advanceslot(buffmgr *bm);
+extern bool buffmgr_is_empty(buffmgr *bm);
+extern void buffmgr_join_spin(buffmgr *bm);
 
 #define CONSUMER(CONSUMER_FUNCTION, SLOT)                               \
   void *CONSUMER_FUNCTION(void *bm_arguments) {                         \
