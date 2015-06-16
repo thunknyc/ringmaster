@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "ringmgr.h"
+#include "ringmaster.h"
 
 #define LOG(...) fprintf(stderr, __VA_ARGS__)
 
@@ -22,7 +22,7 @@ typedef struct out_event {
   char message[MAX_JSON_SIZE];
 } out_event;
 
-ringmgr_t *in, *out;
+ringmaster_t *in, *out;
 FILE *out_file;
 
 in_event ievents[IN_BUFFER_SIZE];
@@ -46,11 +46,11 @@ CONSUMER(sum_ievent, slot) {
 } END_CONSUMER
 
 CONSUMER(jsonify_ievent, slot) {
-  size_t slot = ringmgr_getslot_spin(out);
+  size_t slot = ringmaster_getslot_spin(out);
   snprintf(oevents[slot].message, MAX_JSON_SIZE,
            "{\"a\": %ld, \"b\": %ld, \"sum\": %ld}\n",
            ievents[slot].a, ievents[slot].b, ievents[slot].sum);
-  ringmgr_advanceslot(out);
+  ringmaster_advanceslot(out);
 } END_CONSUMER
 
 CONSUMER(write_oevent, slot) {
@@ -65,14 +65,14 @@ int main(int argc, char **argv) {
                         {true, false, false},
                         {false, true, false}};
 
-  in = ringmgr_make(IN_BUFFER_SIZE, N_CONSUMERS(in_consumers),
+  in = ringmaster_make(IN_BUFFER_SIZE, N_CONSUMERS(in_consumers),
                     in_consumers, in_deps);
 
   consumer out_consumers[] = {write_oevent};
 
   bool out_deps[1][1] = {{false}};
 
-  out = ringmgr_make(OUT_BUFFER_SIZE, N_CONSUMERS(out_consumers),
+  out = ringmaster_make(OUT_BUFFER_SIZE, N_CONSUMERS(out_consumers),
                      out_consumers, out_deps);
 
   assert(argc == 2);
@@ -86,20 +86,20 @@ int main(int argc, char **argv) {
 
   out_file = stdout;
 
-  ringmgr_start(in);
-  ringmgr_start(out);
+  ringmaster_start(in);
+  ringmaster_start(out);
 
   for (long i = 0; i < iterations; i++) {
-    size_t slot = ringmgr_getslot_spin(in);
+    size_t slot = ringmaster_getslot_spin(in);
     init_ievent(slot, i);
-    ringmgr_advanceslot(in);
+    ringmaster_advanceslot(in);
   }
   
-  ringmgr_join_spin(in);
-  ringmgr_destroy(in);
+  ringmaster_join_spin(in);
+  ringmaster_destroy(in);
   
-  ringmgr_join_spin(out);
-  ringmgr_destroy(out);
+  ringmaster_join_spin(out);
+  ringmaster_destroy(out);
 
   return 0;
 }

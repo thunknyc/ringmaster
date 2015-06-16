@@ -1,4 +1,4 @@
-#include "ringmgr.h"
+#include "ringmaster.h"
 #include <assert.h>
 #include <stdbool.h>
 
@@ -13,10 +13,10 @@ static unsigned long largest_pow_2(unsigned long n) {
   return v;
 }
 
-static ringmgr_t *ringmgr_alloc(unsigned long n_slots,
-                                short n_consumers) {
+static ringmaster_t *ringmaster_alloc(unsigned long n_slots,
+                                      short n_consumers) {
 
-  ringmgr_t *rm = malloc(sizeof(ringmgr_t));
+  ringmaster_t *rm = malloc(sizeof(ringmaster_t));
   assert(rm != NULL);
 
   rm->consumer_slots = calloc(1, n_consumers * sizeof(unsigned long));
@@ -28,14 +28,14 @@ static ringmgr_t *ringmgr_alloc(unsigned long n_slots,
   return rm;
 }
 
-ringmgr_t *ringmgr_make(unsigned long requested_slots,
-                      short n_consumers,
-                      consumer *consumers,
-                      bool consumer_deps[n_consumers][n_consumers]) {
+ringmaster_t *ringmaster_make(unsigned long requested_slots,
+                              short n_consumers,
+                              consumer *consumers,
+                              bool consumer_deps[n_consumers][n_consumers]) {
 
   unsigned long n_slots = largest_pow_2(requested_slots);
 
-  ringmgr_t *rm = ringmgr_alloc(n_slots, n_consumers);
+  ringmaster_t *rm = ringmaster_alloc(n_slots, n_consumers);
   assert(rm != NULL);
 
   rm->consumers = consumers;
@@ -53,7 +53,7 @@ ringmgr_t *ringmgr_make(unsigned long requested_slots,
   return rm;
 }
 
-void ringmgr_start(ringmgr_t *rm) {
+void ringmaster_start(ringmaster_t *rm) {
   for (int i = 0; i < rm->n_consumers; i++) {
     consumer_args *args = malloc(sizeof(consumer_args));
     assert(args != NULL);
@@ -69,11 +69,11 @@ void ringmgr_start(ringmgr_t *rm) {
   rm->state = ACTIVE;
 }
 
-void ringmgr_pause(ringmgr_t *rm) {
+void ringmaster_pause(ringmaster_t *rm) {
   rm->state = PAUSED;
 }
 
-void ringmgr_resume(ringmgr_t *rm) {
+void ringmaster_resume(ringmaster_t *rm) {
   rm->state = ACTIVE;
 }
 
@@ -82,7 +82,7 @@ static void stop_threads(int n, pthread_t *threads) {
     assert(pthread_join(threads[i], NULL) == 0);
 }
 
-void ringmgr_destroy(ringmgr_t *rm) {
+void ringmaster_destroy(ringmaster_t *rm) {
   // rm->consumers belongs to someone else
   // rm->consumer_deps belong to someone else
   rm->state = STOPPED;
@@ -92,12 +92,12 @@ void ringmgr_destroy(ringmgr_t *rm) {
   free(rm);
 }
 
-static long long new_head(ringmgr_t *rm) {
+static long long new_head(ringmaster_t *rm) {
   unsigned long h = (rm->head + 1) & rm->n_slots_mask;
   return (h == rm->tail) ? -1 : h;
 }
 
-static void advance_tail(ringmgr_t *rm) {
+static void advance_tail(ringmaster_t *rm) {
 
   // If buffer is empty do nothing.
   if (rm->tail == rm->head)
@@ -124,7 +124,7 @@ static void advance_tail(ringmgr_t *rm) {
   rm->tail = (rm->tail + advance) & rm->n_slots_mask;
 }
 
-size_t ringmgr_getslot(ringmgr_t *rm) {
+size_t ringmaster_getslot(ringmaster_t *rm) {
 
   advance_tail(rm);
 
@@ -136,17 +136,17 @@ size_t ringmgr_getslot(ringmgr_t *rm) {
   return rm->head;
 }
 
-size_t ringmgr_getslot_spin(ringmgr_t *rm) {
+size_t ringmaster_getslot_spin(ringmaster_t *rm) {
   long long slot;
-  while((slot = ringmgr_getslot(rm)) == -1);
+  while((slot = ringmaster_getslot(rm)) == -1);
   return (size_t)slot;
 }
 
-void ringmgr_advanceslot(ringmgr_t *rm) {
+void ringmaster_advanceslot(ringmaster_t *rm) {
   rm->head = new_head(rm);
 }
 
-long long ringmgr_slotavailable_priv(ringmgr_t *rm, unsigned short consumer) {
+long long ringmaster_slotavailable_priv(ringmaster_t *rm, unsigned short consumer) {
   unsigned long slot = rm->consumer_slots[consumer];
   int n_consumers = rm->n_consumers;
 
@@ -165,17 +165,17 @@ long long ringmgr_slotavailable_priv(ringmgr_t *rm, unsigned short consumer) {
   return slot;
 }
 
-void ringmgr_finishslot_priv(ringmgr_t *rm, unsigned short consumer) {
+void ringmaster_finishslot_priv(ringmaster_t *rm, unsigned short consumer) {
   rm->consumer_slots[consumer] =
     rm->consumer_slots[consumer] + 1 & rm->n_slots_mask;
 }
 
-bool ringmgr_is_empty(ringmgr_t *rm) {
+bool ringmaster_is_empty(ringmaster_t *rm) {
   return rm->head == rm->tail;
 }
 
-void ringmgr_join_spin(ringmgr_t *rm) {
-  for (; !ringmgr_is_empty(rm);)
+void ringmaster_join_spin(ringmaster_t *rm) {
+  for (; !ringmaster_is_empty(rm);)
     advance_tail(rm);
 }
 

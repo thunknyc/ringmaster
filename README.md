@@ -1,43 +1,43 @@
-# Ringmgr: Ring Buffer Manager
+# Ringmaster: Ring Buffer Manager
 
 Disruptor-inspired graph computing.
 
 type  
-`typedef struct ringmgr_t`
+`typedef struct ringmaster_t`
 
 type  
 `typedef void *(*consumer)(void *arguments)`
 
 function  
-`extern ringmgr_t *
-ringmgr_make(size_t requested_slots, short n_consumers, consumer *consumers, bool consumer_deps[n_consumers][n_consumers])`
+`extern ringmaster_t *
+ringmaster_make(size_t requested_slots, short n_consumers, consumer *consumers, bool consumer_deps[n_consumers][n_consumers])`
 
 function  
-`extern void ringmgr_start(ringmgr_t *rm)`
+`extern void ringmaster_start(ringmaster_t *rm)`
 
 function  
-`extern void ringmgr_pause(ringmgr_t *rm)`
+`extern void ringmaster_pause(ringmaster_t *rm)`
 
 function  
-`extern void ringmgr_resume(ringmgr_t *rm)`
+`extern void ringmaster_resume(ringmaster_t *rm)`
 
 function  
-`extern void ringmgr_destroy(ringmgr_t *rm)`
+`extern void ringmaster_destroy(ringmaster_t *rm)`
 
 function  
-`extern size_t ringmgr_getslot(ringmgr_t *rm)`
+`extern size_t ringmaster_getslot(ringmaster_t *rm)`
 
 function  
-`extern size_t ringmgr_getslot_spin(ringmgr_t *rm)`
+`extern size_t ringmaster_getslot_spin(ringmaster_t *rm)`
 
 function  
-`extern void ringmgr_advanceslot(ringmgr_t *rm)`
+`extern void ringmaster_advanceslot(ringmaster_t *rm)`
 
 function  
-`extern bool ringmgr_is_empty(ringmgr_t *rm)`
+`extern bool ringmaster_is_empty(ringmaster_t *rm)`
 
 function  
-`extern void ringmgr_join_spin(ringmgr_t *rm)`
+`extern void ringmaster_join_spin(ringmaster_t *rm)`
 
 macro  
 `CONSUMER(CONSUMER_FUNCTION, SLOT)`
