@@ -13,14 +13,14 @@ typedef enum {
 typedef struct obstructor {
   pthread_t *threads;
   consumer *consumers;
-  size_t *consumer_slots;
+  volatile size_t *consumer_slots;
   void *consumer_deps;
   size_t head;
   size_t tail;
   size_t n_slots;
   size_t n_slots_mask;
   short n_consumers;
-  obstructor_state state;
+  volatile obstructor_state state;
 } obstructor;
 
 typedef struct consumer_args {

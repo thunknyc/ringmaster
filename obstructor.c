@@ -89,7 +89,7 @@ void destroy_obstructor(obstructor *o) {
   o->state = STOPPED;
   stop_threads(o->n_consumers, o->threads);
   free(o->threads);
-  free(o->consumer_slots);
+  free((void *)o->consumer_slots);
   free(o);
 }
 
@@ -108,7 +108,7 @@ static void advance_tail(obstructor *o) {
 
   {
     size_t *isp = is;
-    size_t *csp = o->consumer_slots;
+    volatile size_t *csp = o->consumer_slots;
     for (int i = 0; i < o->n_consumers; i++, isp++, csp++)
       *isp = (*csp + o->n_slots - o->tail) & o->n_slots_mask;
   }
@@ -155,7 +155,7 @@ long long slot_available_private(obstructor *o, unsigned short consumer) {
     return -1;
 
   {
-    unsigned long *csp = o->consumer_slots;
+    volatile unsigned long *csp = o->consumer_slots;
     bool *cdp = ((bool(*)[o->n_consumers])o->consumer_deps)[consumer];
 
     for (int i = 0; i < n_consumers; i++, csp++, cdp++)
