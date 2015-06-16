@@ -1,3 +1,3 @@
-# Obstructor in C
+# Ring Buffer Manager
 
 Disruptor-inspired graph computing.
