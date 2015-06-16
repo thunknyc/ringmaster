@@ -10,10 +10,6 @@ Disruptor-inspired graph computing.
 
 `extern buffmgr *
 buffmgr_make(size_t requested_slots, short n_consumers, consumer *consumers, bool consumer_deps[n_consumers][n_consumers])` function
-`extern long long buffmgr_slotavailable_priv(buffmgr *bm, unsigned short consumer)` function
-
-
-`extern void buffmgr_finishslot_priv(buffmgr *bm, unsigned short consumer)` function
 
 
 `extern void buffmgr_start(buffmgr *bm)` function
