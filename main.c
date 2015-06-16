@@ -33,7 +33,7 @@ void init_ievent(size_t slot, long n) {
 }
 
 CONSUMER(parse_ievent, slot) {
-  char *sep = ", ";
+  static char *sep = ", ";
   char *last;
   char *as = strtok_r(ievents[slot].s, sep, &last);
   char *bs = strtok_r(NULL, sep, &last);
