@@ -1,11 +1,11 @@
 CFLAGS = -emit-llvm -Werror -Wall -std=c99 -Ofast
 
-a.out: main.o obstructor.o
-	$(CC) -o a.out main.o obstructor.o
+a.out: main.o buffmgr.o
+	$(CC) -o a.out main.o buffmgr.o
 
-obstructor.o: obstructor.c obstructor.h
+buffmgr.o: buffmgr.c buffmgr.h
 
-main.c: obstructor.h
+main.c: buffmgr.h
 
 clean:
 	rm -f *.o a.out

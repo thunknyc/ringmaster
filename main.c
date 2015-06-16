@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "obstructor.h"
+#include "buffmgr.h"
 
 #define LOG(...) fprintf(stderr, __VA_ARGS__)
 
@@ -22,7 +22,7 @@ typedef struct out_event {
   char message[MAX_JSON_SIZE];
 } out_event;
 
-obstructor *in, *out;
+buffmgr *in, *out;
 FILE *out_file;
 
 in_event ievents[IN_BUFFER_SIZE];
@@ -46,11 +46,11 @@ CONSUMER(sum_ievent, slot) {
 } END_CONSUMER
 
 CONSUMER(jsonify_ievent, slot) {
-  size_t slot = get_slot_block(out);
+  size_t slot = buffmgr_getslot_spin(out);
   snprintf(oevents[slot].message, MAX_JSON_SIZE,
            "{\"a\": %ld, \"b\": %ld, \"sum\": %ld}\n",
            ievents[slot].a, ievents[slot].b, ievents[slot].sum);
-  advance_slot(out);
+  buffmgr_advanceslot(out);
 } END_CONSUMER
 
 CONSUMER(write_oevent, slot) {
@@ -65,15 +65,15 @@ int main(int argc, char **argv) {
                         {true, false, false},
                         {false, true, false}};
 
-  in = make_obstructor(IN_BUFFER_SIZE, N_CONSUMERS(in_consumers),
-                       in_consumers, in_deps);
+  in = buffmgr_make(IN_BUFFER_SIZE, N_CONSUMERS(in_consumers),
+                    in_consumers, in_deps);
 
   consumer out_consumers[] = {write_oevent};
 
   bool out_deps[1][1] = {{false}};
 
-  out = make_obstructor(OUT_BUFFER_SIZE, N_CONSUMERS(out_consumers),
-                        out_consumers, out_deps);
+  out = buffmgr_make(OUT_BUFFER_SIZE, N_CONSUMERS(out_consumers),
+                     out_consumers, out_deps);
 
   assert(argc == 2);
   assert(in != NULL);
@@ -86,20 +86,20 @@ int main(int argc, char **argv) {
 
   out_file = stdout;
 
-  start_obstructor(in);
-  start_obstructor(out);
+  buffmgr_start(in);
+  buffmgr_start(out);
 
   for (long i = 0; i < iterations; i++) {
-    size_t slot = get_slot_block(in);
+    size_t slot = buffmgr_getslot_spin(in);
     init_ievent(slot, i);
-    advance_slot(in);
+    buffmgr_advanceslot(in);
   }
   
-  join_obstructor(in);
-  destroy_obstructor(in);
+  buffmgr_join_spin(in);
+  buffmgr_destroy(in);
   
-  join_obstructor(out);
-  destroy_obstructor(out);
+  buffmgr_join_spin(out);
+  buffmgr_destroy(out);
 
   return 0;
 }
