@@ -58,18 +58,17 @@ int main(int argc, char **argv) {
 
   consumer in_consumers[] = {parse_ievent, jsonify_ievent};
 
-  bool in_deps[2][2] = {{false, false},
-                        {true, false}};
+  short in_deps[2][2] = {{}, {1}};
 
-  in = ringmaster_make(IN_BUFFER_SIZE, N_CONSUMERS(in_consumers),
-                    in_consumers, in_deps);
+  in = ringmaster_create(IN_BUFFER_SIZE, N_CONSUMERS(in_consumers),
+                         in_consumers, in_deps);
 
   consumer out_consumers[] = {write_oevent};
 
-  bool out_deps[1][1] = {{false}};
+  short out_deps[1][1] = {{}};
 
-  out = ringmaster_make(OUT_BUFFER_SIZE, N_CONSUMERS(out_consumers),
-                     out_consumers, out_deps);
+  out = ringmaster_create(OUT_BUFFER_SIZE, N_CONSUMERS(out_consumers),
+                          out_consumers, out_deps);
 
   assert(argc == 2);
   assert(in != NULL);

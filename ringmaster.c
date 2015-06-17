@@ -28,10 +28,11 @@ static ringmaster_t *ringmaster_alloc(unsigned long n_slots,
   return rm;
 }
 
-ringmaster_t *ringmaster_make(unsigned long requested_slots,
-                              short n_consumers,
-                              consumer *consumers,
-                              bool consumer_deps[n_consumers][n_consumers]) {
+ringmaster_t *
+ringmaster_create(unsigned long requested_slots,
+                  short n_consumers,
+                  consumer *consumers,
+                  short consumer_deps[n_consumers][n_consumers]) {
 
   unsigned long n_slots = largest_pow_2(requested_slots);
 
@@ -40,7 +41,6 @@ ringmaster_t *ringmaster_make(unsigned long requested_slots,
 
   rm->consumers = consumers;
   // rm->threads
-  // rm->slots
   // rm->consumer_slots
   rm->consumer_deps = consumer_deps;
   rm->head = 0;
@@ -146,21 +146,18 @@ void ringmaster_advanceslot(ringmaster_t *rm) {
   rm->head = new_head(rm);
 }
 
-long long ringmaster_slotavailable_priv(ringmaster_t *rm, unsigned short consumer) {
+size_t
+ringmaster_slotavailable_priv(ringmaster_t *rm, unsigned short consumer) {
   unsigned long slot = rm->consumer_slots[consumer];
-  int n_consumers = rm->n_consumers;
 
   if (rm->head == slot)
     return -1;
 
-  {
-    volatile unsigned long *csp = rm->consumer_slots;
-    bool *cdp = ((bool(*)[rm->n_consumers])rm->consumer_deps)[consumer];
-
-    for (int i = 0; i < n_consumers; i++, csp++, cdp++)
-      if (*cdp && *csp == slot)
-        return -1;
-  }
+  for (short *cdp = ((short(*)[rm->n_consumers])rm->consumer_deps)[consumer];
+       *cdp;
+       cdp++)
+    if (rm->consumer_slots[*cdp-1] == slot)
+      return -1;
 
   return slot;
 }

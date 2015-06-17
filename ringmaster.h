@@ -27,12 +27,12 @@ typedef struct consumer_args {
 } consumer_args;
 
 extern ringmaster_t *
-ringmaster_make(size_t requested_slots,
-                short n_consumers,
-                consumer *consumers,
-                bool consumer_deps[n_consumers][n_consumers]);
+ringmaster_create(size_t requested_slots,
+                  short n_consumers,
+                  consumer *consumers,
+                  short consumer_deps[n_consumers][n_consumers]);
 
-extern long long
+extern size_t
 ringmaster_slotavailable_priv(ringmaster_t *rm, unsigned short consumer);
 
 extern void
@@ -53,7 +53,7 @@ extern void ringmaster_join_spin(ringmaster_t *rm);
     __unused char rm_consumer_name[] = #CONSUMER_FUNCTION;              \
     consumer_args *rm_args = (consumer_args *)rm_arguments;             \
     ringmaster_t *rm_rm = rm_args->rm;                                  \
-    unsigned short rm_consumer = rm_args->consumer;                     \
+    short rm_consumer = rm_args->consumer;                              \
                                                                         \
     free(rm_arguments);                                                 \
                                                                         \
@@ -65,7 +65,7 @@ extern void ringmaster_join_spin(ringmaster_t *rm);
       } else if (rm_state == PAUSED)                                    \
         continue;                                                       \
                                                                         \
-      long long rm_i = ringmaster_slotavailable_priv(rm_rm, rm_consumer); \
+      size_t rm_i = ringmaster_slotavailable_priv(rm_rm, rm_consumer);  \
       if (rm_i == -1)                                                   \
         continue;                                                       \
                                                                         \
