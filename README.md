@@ -10,24 +10,19 @@ typedef struct ringmaster_t
 Data structure for managing access to ring buffer among a producer
 thread and consumer threads.
 
-type  
-```c
-typedef void *(*consumer)(void *arguments)
-```
-
-Function signature of consumer functions. See `CONSUMER()` for
-information on defining consumer functions.
-
 function  
 ```c
-extern ringmaster_t *ringmaster_make(size_t requested_slots, short n_consumers, consumer *consumers, bool consumer_deps[n_consumers][n_consumers])
+extern ringmaster_t *ringmaster_create(size_t requested_slots, short n_consumers, consumer *consumers, short consumer_deps[n_consumers][n_consumers])
 ```
 
 Allocate a ringmaster and initialize it to manage a ring buffer of
 size `requested_slots`. The ringmaster will coordinate access to the
 buffer for `n_consumer` consumer functions, provided in
 `consumers`. The dependencies between consumers are modeled in a
-two-dimensional array `consumer_deps`.
+two-dimensional array `consumer_deps`, which is an array of dependency
+arrays, each dependency array containing zero or more consumer ids
+(one-based indexing) referring to consumer functions speciifced in
+`consumers`.
 
 function  
 ```c
