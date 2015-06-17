@@ -39,9 +39,6 @@ CONSUMER(parse_ievent, slot) {
   char *bs = strtok_r(NULL, sep, &last);
   ievents[slot].a = atoll(as);
   ievents[slot].b = atoll(bs);
-} END_CONSUMER
-
-CONSUMER(sum_ievent, slot) {
   ievents[slot].sum = ievents[slot].a + ievents[slot].b;
 } END_CONSUMER
 
@@ -59,11 +56,10 @@ CONSUMER(write_oevent, slot) {
 
 int main(int argc, char **argv) {
 
-  consumer in_consumers[] = {parse_ievent, sum_ievent, jsonify_ievent};
+  consumer in_consumers[] = {parse_ievent, jsonify_ievent};
 
-  bool in_deps[3][3] = {{false, false, false},
-                        {true, false, false},
-                        {false, true, false}};
+  bool in_deps[2][2] = {{false, false},
+                        {true, false}};
 
   in = ringmaster_make(IN_BUFFER_SIZE, N_CONSUMERS(in_consumers),
                     in_consumers, in_deps);
