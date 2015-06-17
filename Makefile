@@ -1,4 +1,5 @@
-CFLAGS = -emit-llvm -Werror -Wall -std=c99 -Ofast
+#CFLAGS = -Werror -Wall -std=c99 -g -O0            # debug-friendly
+CFLAGS = -emit-llvm -Werror -Wall -std=c99 -Ofast # performance
 
 a.out: main.o ringmaster.o
 	$(CC) -o a.out main.o ringmaster.o
